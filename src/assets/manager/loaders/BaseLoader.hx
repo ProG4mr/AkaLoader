@@ -28,6 +28,7 @@ class BaseLoader extends EventDispatcher {
 	public var data(default, null):Dynamic;
 	public var status(default, null):LoaderStatus;
 	public var error(default, null):String;
+	public var attempts:Int = 5;
 	
 	function new(id:String, type:FileType) {
 		super();
@@ -48,10 +49,20 @@ class BaseLoader extends EventDispatcher {
     }
 	
 	function onLoadFail(e:ErrorEvent) {
-		data = null;
-		error = e.toString();
-		status = LoaderStatus.ERROR;
-		dispatchEvent(new Event(Event.COMPLETE));
+		if (attempts >= 0) {
+			trace(attempts);
+			Timer.delay(function() {
+				start();
+			}, Std.int(Math.random() * 100));
+			attempts--;
+		}
+		else {
+			data = null;
+			error = e.toString();
+			status = LoaderStatus.ERROR;
+			trace('xpt loading error:', e.toString());
+			dispatchEvent(new Event(Event.COMPLETE));
+		}
 	}
 	
 	function processData() {
